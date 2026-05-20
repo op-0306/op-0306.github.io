@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TAH ULTIMATE CLICKER</title>
+  <style>
+    html {
+      touch-action: manipulation;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: white;
+    }
+
+    .game {
+      width: 100%;
+      max-width: 360px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: clamp(1.6rem, 5vw, 2rem);
+    }
+
+    .score {
+      font-size: clamp(1.8rem, 7vw, 2.2rem);
+      margin: 18px 0;
+      font-weight: bold;
+    }
+
+    .click-btn {
+      width: min(50vw, 180px);
+      height: min(50vw, 180px);
+      border: none;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: linear-gradient(145deg, #38bdf8, #0284c7);
+      color: white;
+      transition: transform 0.08s ease;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    }
+
+    .click-btn:active {
+      transform: scale(0.95);
+    }
+
+    .shop {
+      margin-top: 28px;
+      text-align: left;
+    }
+
+    .shop h2 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .upgrade {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.08);
+      padding: 12px;
+      border-radius: 14px;
+      margin-bottom: 10px;
+    }
+
+    .upgrade button {
+      border: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #22c55e;
+      color: white;
+      font-weight: bold;
+    }
+
+    .stats {
+      margin-top: 18px;
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+      @media (max-width: 480px) {
+      .game {
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      .upgrade {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .upgrade button {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+      }
+
+      .click-btn {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <h1>💥TAH CLICKER GAME💥</h1>
+
+    <div class="score" id="score">0 coin</div>
+
+    <button class="click-btn" id="clickButton">
+      💥💥💥💥💥
+    </button>
+
+    <div class="stats">
+      HIGHEST SCORE: <span id="bestScore">0</span><br>
+      coin per click: <span id="perClick">1</span><br>
+      auto coin per 1s: <span id="autoValue">0</span>
+    </div>
+
+    <div class="shop">
+      <h2>store</h2>
+
+      <div class="upgrade">
+        <div>
+          <strong>STRONG CLICK</strong><br>
+          cost: <span id="clickUpgradeCost">20</span>
+        </div>
+        <button id="clickUpgradeBtn">buy</button>
+      </div>
+
+      <div class="upgrade">
+        <div>
+          <strong>auto maker</strong><br>
+          cost: <span id="autoUpgradeCost">50</span>
+        </div>
+        <button id="autoUpgradeBtn">buy</button>
+      </div>
+    </div>
+  </div>
+ <div class="shop">
+  <h2>💎 rare item box</h2>
+
+  <div class="upgrade">
+    <div>
+      <strong>LUCKY BOX</strong><br>
+      cost: <span id="boxCost">100</span>
+    </div>
+    <button id="boxBtn">open</button>
+  </div>
+
+  <div id="itemLog" style="margin-top:10px; font-size:0.95rem;"></div>
+
+  <div style="margin-top:18px;">
+    <strong>MY ITEMS</strong>
+    <div id="inventory"></div>
+  </div>
+</div>
+  <script>
+    let score = Number(localStorage.getItem('score')) || 0;
+    let perClick = Number(localStorage.getItem('perClick')) || 1;
+    let autoCoins = Number(localStorage.getItem('autoCoins')) || 0;
+
+    let clickUpgradeCost = Number(localStorage.getItem('clickUpgradeCost')) || 20;
+    let autoUpgradeCost = Number(localStorage.getItem('autoUpgradeCost')) || 50;
+
+    const scoreEl = document.getElementById('score');
+    const perClickEl = document.getElementById('perClick');
+    const autoValueEl = document.getElementById('autoValue');
+
+    const clickUpgradeCostEl = document.getElementById('clickUpgradeCost');
+    const autoUpgradeCostEl = document.getElementById('autoUpgradeCost');
+
+    function saveGame() {
+      localStorage.setItem('score', score);
+      localStorage.setItem('perClick', perClick);
+      localStorage.setItem('autoCoins', autoCoins);
+      localStorage.setItem('clickUpgradeCost', clickUpgradeCost);
+      localStorage.setItem('autoUpgradeCost', autoUpgradeCost);
+
+      const bestScore = Number(localStorage.getItem('bestScore')) || 0;
+      if (score > bestScore) {
+        localStorage.setItem('bestScore', Math.floor(score));
+      }
+    }
+
+    function updateRanking() {
+      const bestScore = Number(localStorage.getItem('bestScore')) || 0;
+      document.getElementById('bestScore').textContent = bestScore;
+    }
+
+    function updateUI() {
+      scoreEl.textContent = `${Math.floor(score)} coin`;
+      perClickEl.textContent = perClick;
+      autoValueEl.textContent = autoCoins;
+
+      clickUpgradeCostEl.textContent = clickUpgradeCost;
+      autoUpgradeCostEl.textContent = autoUpgradeCost;
+
+      saveGame();
+      updateRanking();
+    }
+
+    document.getElementById('clickButton').addEventListener('click', () => {
+      score += perClick;
+      updateUI();
+    });
+
+    document.getElementById('clickUpgradeBtn').addEventListener('click', () => {
+      if (score >= clickUpgradeCost) {
+        score -= clickUpgradeCost;
+        perClick += 1;
+        clickUpgradeCost = Math.floor(clickUpgradeCost * 1.7);
+        updateUI();
+      }
+    });
+
+    document.getElementById('autoUpgradeBtn').addEventListener('click', () => {
+      if (score >= autoUpgradeCost) {
+        score -= autoUpgradeCost;
+        autoCoins += 1;
+        autoUpgradeCost = Math.floor(autoUpgradeCost * 1.8);
+        updateUI();
+      }
+    });
+
+    setInterval(() => {
+      score += autoCoins;
+      updateUI();
+    }, 1000);
+
+    updateUI();
+
+    setInterval(() => {
+      saveGame();
+    }, 3000);
+  </script>
+</body>
+</html>
